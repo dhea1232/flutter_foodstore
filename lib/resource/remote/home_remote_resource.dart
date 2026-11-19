@@ -81,18 +81,24 @@ class HomeRemoteResource {
     }
   }
 
-  Future<Either<String, List<ProductModel>>> fetchProductsPopuler() async {
-    try {
-      final response = await dio.get('public/products-popular');
+Future<Either<String, List<ProductModel>>> fetchProductsPopuler() async {
+  try {
+    final response = await dio.get('public/products/popular');
+
+    if (response.statusCode == 200) {
       final apiResponse =
           ApiResponse.fromJson(response.data, ProductModel.fromMap);
+
       return Right(apiResponse.data);
-    } on DioException catch (e) {
-      return Left(e.toString());
-    } catch (e) {
-      return Left(e.toString());
     }
+
+    return Left('Failed to fetch Product Popular');
+  } on DioException catch (e) {
+    return Left(e.toString());
+  } catch (e) {
+    return Left(e.toString());
   }
+}
 
   Future<Either<String, ProductModel>> detailProduct(String slug) async {
     try {

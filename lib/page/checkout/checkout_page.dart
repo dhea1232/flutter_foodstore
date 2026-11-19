@@ -263,41 +263,60 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   /// Mencari lokasi dari kata yang diketik
-  void _searchLocation() {
-    if (locationController.text.isEmpty) {
-      _messageEror('Please Select Location');
-      return;
-    }
-    context.read<LocationCubit>().getLocation(locationController.text);
+void _searchLocation() {
+  final search = locationController.text.trim();
+
+  if (search.isEmpty) {
+    _messageEror('Please enter location');
+    return;
   }
 
-  Widget _buildLocationList(List<LocationModel> locations) {
-    return SizedBox(
-      width: double.infinity,
-      height: 200,
-      child: ListView.builder(
-          itemCount: locations.length,
-          itemBuilder: (context, index) {
-            final location = locations[index];
-            return ListTile(
-              title: Text(location.label.toString()),
-              onTap: () {
-                setState(() {
-                  locationController.text = location.label.toString();
-                  selectLocation = location;
-                  // kota diganti, jadi ongkir lama tidak berlaku lagi
-                  selectedShipping = null;
-                  selectShippingCost = 0;
-                  shippingCostModel = null;
-                });
-                context.read<ShippingCostCubit>().resetShippingCost();
-                context.read<LocationCubit>().clearLocation();
-                _validateForm();
-              },
-            );
-          }),
-    );
-  }
+  // Hapus lokasi yang sebelumnya dipilih
+  setState(() {
+    selectLocation = null;
+    selectedShipping = null;
+    selectShippingCost = 0;
+    shippingCostModel = null;
+  });
+
+  context.read<ShippingCostCubit>().resetShippingCost();
+
+  context.read<LocationCubit>().getLocation(search);
+
+  _validateForm();
+}
+
+ Widget _buildLocationList(List<LocationModel> locations) {
+  return SizedBox(
+    width: double.infinity,
+    height: 200,
+    child: ListView.builder(
+      itemCount: locations.length,
+      itemBuilder: (context, index) {
+        final location = locations[index];
+
+        return ListTile(
+          title: Text(location.label ?? 'Alamat tidak diketahui'),
+          onTap: () {
+            setState(() {
+              locationController.text = location.label ?? '';
+              selectLocation = location;
+
+              selectedShipping = null;
+              selectShippingCost = 0;
+              shippingCostModel = null;
+            });
+
+            context.read<ShippingCostCubit>().resetShippingCost();
+            context.read<LocationCubit>().clearLocation();
+
+            _validateForm();
+          },
+        );
+      },
+    ),
+  );
+}
 
   Widget _buildAddressField() {
     return TextFormField(
